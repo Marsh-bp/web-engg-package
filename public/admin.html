@@ -2,52 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <h1>Admin Panel - Blocked IPs</h1>
-  <ul id="blockedIpsList"></ul>
-
-  <input type="text" id="unblockIpInput" placeholder="Enter IP to unblock">
-  <button id="unblockButton">Unblock IP</button>
+  <h1>Admin Panel</h1>
+  <input type="text" id="ip" placeholder="Enter IP to unblock">
+  <button onclick="unblockIp()">Unblock IP</button>
 
   <script>
-    async function fetchBlockedIps() {
-      const response = await fetch('http://localhost:3000/admin/blocked-ips');
-      const data = await response.json();
-      const ul = document.getElementById('blockedIpsList');
-      ul.innerHTML = '';
-      data.blockedIps.forEach(ip => {
-        const li = document.createElement('li');
-        li.textContent = ip;
-        ul.appendChild(li);
-      });
-    }
-
-    async function unblockIp() {
-      const ip = document.getElementById('unblockIpInput').value;
-      if (!ip) return alert('Please enter an IP address to unblock.');
-
-      const response = await fetch('http://localhost:3000/admin/unblock-ip', {
+    function unblockIp() {
+      const ip = document.getElementById('ip').value;
+      
+      fetch('/api/unblock-ip', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ip }),
-      });
-
-      if (response.ok) {
-        alert(`IP ${ip} has been unblocked.`);
-        fetchBlockedIps(); // Refresh the blocked IPs list
-      } else {
-        const error = await response.json();
-        alert(`Error: ${error.error}`);
-      }
+        body: JSON.stringify({ ip: ip }),
+      })
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error unblocking IP:', error));
     }
-
-    document.getElementById('unblockButton').onclick = unblockIp;
-    window.onload = fetchBlockedIps;
   </script>
 </body>
 </html>
