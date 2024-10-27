@@ -1,9 +1,15 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
   "routes": [
     {
-      "src": "/get-ip",
-      "dest": "/api/get-ip"
+      "src": "/(.*)",
+      "dest": "server.js"
     }
   ]
 }
