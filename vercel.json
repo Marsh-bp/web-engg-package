@@ -2,8 +2,8 @@
   "version": 2,
   "routes": [
     {
-      "src": "/api/get-ip",
-      "dest": "/api/get-ip"
+      "src": "/",
+      "dest": "/index.html"
     }
   ]
 }
