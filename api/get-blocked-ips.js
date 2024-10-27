@@ -6,14 +6,15 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 exports.handler = async (event) => {
     try {
         await client.connect();
-        const database = client.db('IP');
+        const database = client.db('your_database_name');
         const collection = database.collection('blockedIPs');
         
         const blockedIPs = await collection.find({}).toArray();
+        const ipList = blockedIPs.map(ip => ip.ip);
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ blockedIPs: blockedIPs.map(ip => ip.ip) })
+            body: JSON.stringify({ blockedIPs: ipList.length ? ipList : [] })
         };
     } catch (error) {
         return {
