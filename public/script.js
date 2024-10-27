@@ -3,26 +3,28 @@ const REQUEST_LIMIT = 100;
 let blockedIPs = JSON.parse(localStorage.getItem('blockedIPs')) || [];
 
 document.getElementById('bookNowButton').addEventListener('click', () => {
-    fetch('/get-ip')
-        .then(response => response.json())
-        .then(data => {
-            const ip = data.ip;
-            const responseMessage = document.getElementById('responseMessage');
+    fetch('/api/get-ip')
+    .then(response => response.json())
+    .then(data => {
+        console.log('Fetched IP:', data);
+        const ip = data.ip;
+        const responseMessage = document.getElementById('responseMessage');
 
-            if (blockedIPs.includes(ip)) {
-                responseMessage.textContent = 'Your IP is blocked due to too many requests.';
-                return;
-            }
+        if (blockedIPs.includes(ip)) {
+            responseMessage.textContent = 'Your IP is blocked due to too many requests.';
+            return;
+        }
 
-            if (isRequestAllowed(ip)) {
-                responseMessage.textContent = 'Booking request sent successfully!';
-            } else {
-                responseMessage.textContent = 'Too many requests. Your IP has been blocked.';
-                blockedIPs.push(ip);
-                localStorage.setItem('blockedIPs', JSON.stringify(blockedIPs));
-            }
-        })
-        .catch(error => console.error('Error fetching IP:', error));
+        if (isRequestAllowed(ip)) {
+            responseMessage.textContent = 'Booking request sent successfully!';
+        } else {
+            responseMessage.textContent = 'Too many requests. Your IP has been blocked.';
+            blockedIPs.push(ip);
+            localStorage.setItem('blockedIPs', JSON.stringify(blockedIPs));
+        }
+    })
+    .catch(error => console.error('Error fetching IP:', error));
+
 });
 
 function isRequestAllowed(ip) {
