@@ -1,28 +1,22 @@
-const { MongoClient } = require('mongodb');
-
-const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+const fs = require('fs');
+const path = require('path');
 
 exports.handler = async (event) => {
-    try {
-        console.log('get-blocked-ips function invoked');
-        await client.connect();
-        const database = client.db('your_database_name');
-        const collection = database.collection('blockedIPs');
+    const filePath = path.join(__dirname, '..', 'blocked-ips.txt');
 
-        const blockedIPs = await collection.find({}).toArray();
-        const ipList = blockedIPs.map(ip => ip.ip);
-
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ blockedIPs: ipList })
-        };
-    } catch (error) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Failed to fetch blocked IPs' })
-        };
-    } finally {
-        await client.close();
-    }
+    return new Promise((resolve) => {
+        fs.readFile(filePath, 'utf-8', (err, data) => {
+            if (err) {
+                resolve({
+                    statusCode: 500,
+                    body: JSON.stringify({ error: 'Failed to read file' })
+                });
+            }
+            const ips = data.trim().split('\n').filter(Boolean);
+            resolve({
+                statusCode: 200,
+                body: JSON.stringify({ blockedIPs: ips })
+            });
+        });
+    });
 };
