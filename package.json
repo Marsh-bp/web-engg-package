@@ -1,14 +1,11 @@
 {
   "name": "dos-prevention-app",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "api/get-ip.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node api/get-ip.js"
   },
   "dependencies": {
     "express": "^4.17.1"
-  },
-  "engines": {
-    "node": "20.x"
   }
 }
