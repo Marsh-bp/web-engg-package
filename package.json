@@ -6,6 +6,7 @@
     "start": "node api/get-ip.js"
   },
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    mongodb": "^4.4.1"
   }
 }
