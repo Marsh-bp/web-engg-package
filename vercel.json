@@ -1,5 +1,13 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" }
-  ]
+  ],
+  "functions": {
+    "api/block-ip.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/unblock-ip.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
 }
