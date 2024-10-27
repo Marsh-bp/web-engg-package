@@ -21,7 +21,8 @@ document.getElementById('bookNowButton').addEventListener('click', () => {
                 blockedIPs.push(ip);
                 localStorage.setItem('blockedIPs', JSON.stringify(blockedIPs));
             }
-        });
+        })
+        .catch(error => console.error('Error fetching IP:', error));
 });
 
 function isRequestAllowed(ip) {
