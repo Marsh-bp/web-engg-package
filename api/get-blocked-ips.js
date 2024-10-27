@@ -4,6 +4,7 @@ const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 exports.handler = async (event) => {
+    console.log('get-blocked-ips function invoked');
     try {
         await client.connect();
         const database = client.db('your_database_name');
@@ -14,7 +15,7 @@ exports.handler = async (event) => {
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ blockedIPs: ipList.length ? ipList : [] })
+            body: JSON.stringify({ blockedIPs: ipList })
         };
     } catch (error) {
         return {
