@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 exports.handler = async (event, context) => {
-    const filePath = path.join(__dirname, 'blocked-ips.txt');
+    const filePath = path.join(__dirname, '..', 'blocked-ips.txt');
 
     return new Promise((resolve, reject) => {
         fs.readFile(filePath, 'utf-8', (err, data) => {
