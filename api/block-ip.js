@@ -1,21 +1,28 @@
-const fs = require('fs');
-const path = require('path');
+const { MongoClient } = require('mongodb');
 
-exports.handler = async (event, context) => {
-    const ip = event.queryStringParameters.ip;
-    const filePath = path.join(__dirname, 'blocked-ips.txt');
+const uri = "mongodb+srv://bharathpranesh2004:Marsh_bp2004@cluster0.noiu6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"; 
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-    fs.appendFile(filePath, `${ip}\n`, (err) => {
-        if (err) {
-            return {
-                statusCode: 500,
-                body: JSON.stringify({ error: 'Failed to write to file' })
-            };
-        }
-    });
+exports.handler = async (event) => {
+    try {
+        await client.connect();
+        const database = client.db('IP');
+        const collection = database.collection('blockedIPs');
+        
+        const ip = event.queryStringParameters.ip;
 
-    return {
-        statusCode: 200,
-        body: JSON.stringify({ message: 'IP blocked successfully' })
-    };
+        await collection.insertOne({ ip: ip, blockedAt: new Date() });
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ message: 'IP blocked successfully' })
+        };
+    } catch (error) {
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Failed to block IP' })
+        };
+    } finally {
+        await client.close();
+    }
 };
