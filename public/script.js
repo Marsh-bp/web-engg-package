@@ -1,12 +1,11 @@
 const TIME_WINDOW = 60000; 
-const REQUEST_LIMIT = 6;
-let blockedIPs = JSON.parse(localStorage.getItem('blockedIPs')) || [];
+const REQUEST_LIMIT = 100;
+let blockedIPs = [];
 
 document.getElementById('bookNowButton').addEventListener('click', () => {
     fetch('/api/get-ip')
         .then(response => response.json())
         .then(data => {
-            console.log('Fetched IP:', data);
             const ip = data.ip;
             const responseMessage = document.getElementById('responseMessage');
 
@@ -20,7 +19,13 @@ document.getElementById('bookNowButton').addEventListener('click', () => {
             } else {
                 responseMessage.textContent = 'Too many requests. Your IP has been blocked.';
                 blockedIPs.push(ip);
-                localStorage.setItem('blockedIPs', JSON.stringify(blockedIPs));
+
+                fetch(`/api/block-ip?ip=${ip}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data.message);
+                    })
+                    .catch(error => console.error('Error blocking IP:', error));
             }
         })
         .catch(error => console.error('Error fetching IP:', error));
@@ -34,7 +39,6 @@ function isRequestAllowed(ip) {
         requests[ip] = [];
     }
 
-    // Filter out requests that are older than the time window
     requests[ip] = requests[ip].filter(request => now - request < TIME_WINDOW);
 
     if (requests[ip].length >= REQUEST_LIMIT) {
@@ -42,7 +46,6 @@ function isRequestAllowed(ip) {
         return false;
     }
 
-    // Add the current request timestamp
     requests[ip].push(now);
     localStorage.setItem('requests', JSON.stringify(requests));
 
