@@ -1,23 +1,27 @@
 const TIME_WINDOW = 60000; // 1 minute
-const REQUEST_LIMIT = 6;
+const REQUEST_LIMIT = 100;
 let blockedIPs = JSON.parse(localStorage.getItem('blockedIPs')) || [];
 
 document.getElementById('bookNowButton').addEventListener('click', () => {
-    const responseMessage = document.getElementById('responseMessage');
-    const ip = 'user_ip'; // Replace with a method to get the user's IP address
+    fetch('/get-ip')
+        .then(response => response.json())
+        .then(data => {
+            const ip = data.ip;
+            const responseMessage = document.getElementById('responseMessage');
 
-    if (blockedIPs.includes(ip)) {
-        responseMessage.textContent = 'Your IP is blocked due to too many requests.';
-        return;
-    }
+            if (blockedIPs.includes(ip)) {
+                responseMessage.textContent = 'Your IP is blocked due to too many requests.';
+                return;
+            }
 
-    if (isRequestAllowed(ip)) {
-        responseMessage.textContent = 'Booking request sent successfully!';
-    } else {
-        responseMessage.textContent = 'Too many requests. Your IP has been blocked.';
-        blockedIPs.push(ip);
-        localStorage.setItem('blockedIPs', JSON.stringify(blockedIPs));
-    }
+            if (isRequestAllowed(ip)) {
+                responseMessage.textContent = 'Booking request sent successfully!';
+            } else {
+                responseMessage.textContent = 'Too many requests. Your IP has been blocked.';
+                blockedIPs.push(ip);
+                localStorage.setItem('blockedIPs', JSON.stringify(blockedIPs));
+            }
+        });
 });
 
 function isRequestAllowed(ip) {
