@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
-app.get('/get-ip', (req, res) => {
+app.get('/api/get-ip', (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     res.json({ ip: ip });
 });
