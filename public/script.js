@@ -1,5 +1,5 @@
-const TIME_WINDOW = 60000; // 1 minute
-const REQUEST_LIMIT = 100;
+const TIME_WINDOW = 60000; 
+const REQUEST_LIMIT = 6;
 let blockedIPs = JSON.parse(localStorage.getItem('blockedIPs')) || [];
 
 document.getElementById('bookNowButton').addEventListener('click', () => {
