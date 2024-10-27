@@ -3,22 +3,18 @@ const REQUEST_LIMIT = 100;
 let blockedIPs = [];
 
 document.getElementById('bookNowButton').addEventListener('click', () => {
-    console.log('Button clicked');
     fetch('/api/get-ip')
         .then(response => response.json())
         .then(data => {
             const ip = data.ip;
             const responseMessage = document.getElementById('responseMessage');
-            console.log(`IP fetched: ${ip}`);
 
-            // Fetch the blocked IPs
             fetch('/api/get-blocked-ips')
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Blocked IPs fetched');
                     const blockedIPs = data.blockedIPs;
 
-                    if (blockedIPs.includes(ip)) {
+                    if (blockedIPs.length && blockedIPs.includes(ip)) {
                         responseMessage.textContent = 'Your IP is blocked due to too many requests.';
                     } else {
                         responseMessage.textContent = 'Booking request sent successfully!';
@@ -28,8 +24,6 @@ document.getElementById('bookNowButton').addEventListener('click', () => {
         })
         .catch(error => console.error('Error fetching IP:', error));
 });
-
-
 
 function isRequestAllowed(ip) {
     const requests = JSON.parse(localStorage.getItem('requests')) || {};
