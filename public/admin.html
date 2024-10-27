@@ -2,30 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>Admin Panel</h1>
-  <input type="text" id="ip" placeholder="Enter IP to unblock">
-  <button onclick="unblockIp()">Unblock IP</button>
+  <div>
+    <h2>Blocked IPs</h2>
+    <ul id="blocked-ips"></ul>
+  </div>
+
+  <input type="text" id="ipToUnblock" placeholder="Enter IP to unblock" />
+  <button onclick="unblockIP()">Unblock IP</button>
 
   <script>
-    function unblockIp() {
-      const ip = document.getElementById('ip').value;
-      
+    function getBlockedIPs() {
+      fetch('/api/get-blocked-ips')
+        .then(response => response.json())
+        .then(data => {
+          const ipList = document.getElementById('blocked-ips');
+          ipList.innerHTML = '';
+          data.blockedIPs.forEach(ip => {
+            const li = document.createElement('li');
+            li.textContent = ip;
+            ipList.appendChild(li);
+          });
+        })
+        .catch(error => console.error("Error fetching blocked IPs:", error));
+    }
+
+    function unblockIP() {
+      const ip = document.getElementById('ipToUnblock').value;
       fetch('/api/unblock-ip', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ip: ip }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip })
       })
-        .then(response => response.json())
-        .then(data => alert(data.message))
-        .catch(error => console.error('Error unblocking IP:', error));
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message);
+        getBlockedIPs();
+      })
+      .catch(error => console.error("Error unblocking IP:", error));
     }
+
+    // Initial fetch to populate the blocked IP list
+    getBlockedIPs();
   </script>
 </body>
 </html>
