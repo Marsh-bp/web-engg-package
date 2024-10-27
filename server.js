@@ -1,88 +1,67 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const fs = require('fs');
-const path = require('path');
-const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Use CORS to handle cross-origin requests (if necessary)
-app.use(cors());
-
-// Middleware to parse JSON bodies
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Serve static files (HTML, CSS, JS)
-app.use(express.static('public'));
-
-// In-memory store for blocked IPs (could be replaced by a database or persistent storage)
+// Load the blocked IPs from a JSON file
 let blockedIPs = [];
+const BLOCKED_IP_FILE = './blocked-ips.json';
 
-// Middleware to block IPs that are in the blocked list
+// Load blocked IPs from the file on server start
+if (fs.existsSync(BLOCKED_IP_FILE)) {
+  const data = fs.readFileSync(BLOCKED_IP_FILE, 'utf8');
+  blockedIPs = JSON.parse(data);
+}
+
+// Middleware to block IPs if they are in the blocked list
 app.use((req, res, next) => {
-  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  if (blockedIPs.includes(ip)) {
-    return res.status(403).send('Access denied: Your IP is blocked.');
+  const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  if (blockedIPs.includes(clientIp)) {
+    return res.status(403).json({ message: 'Your IP has been blocked due to too many requests.' });
   }
   next();
 });
 
-// Rate limiting middleware (DoS prevention)
+// Rate limiter to block IPs with too many requests
 const limiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 100, // 100 requests per windowMs
-  onLimitReached: (req, res, options) => {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    if (!blockedIPs.includes(ip)) {
-      blockedIPs.push(ip);
-      console.log(`Blocked IP: ${ip}`);
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  handler: (req, res) => {
+    const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+    // Add the client IP to the blocked list
+    if (!blockedIPs.includes(clientIp)) {
+      blockedIPs.push(clientIp);
+      fs.writeFileSync(BLOCKED_IP_FILE, JSON.stringify(blockedIPs, null, 2));
     }
-  }
+
+    return res.status(429).json({ message: 'Too many requests. Your IP has been blocked.' });
+  },
 });
 
-// Apply rate limiter to all API routes
-app.use('/api/', limiter);
+// Apply the rate limiter to all routes
+app.use(limiter);
 
-// Route to block an IP manually (for demonstration purposes)
-app.post('/api/block-ip', (req, res) => {
-  const ip = req.body.ip;
-  if (!ip || blockedIPs.includes(ip)) {
-    return res.status(400).json({ message: 'Invalid IP or IP already blocked' });
-  }
-  blockedIPs.push(ip);
-  res.status(200).json({ message: `Blocked IP: ${ip}` });
-  console.log(`Blocked IP manually: ${ip}`);
-});
-
-// Route to unblock an IP manually
+// Admin endpoint to unblock an IP
 app.post('/api/unblock-ip', (req, res) => {
-  const ip = req.body.ip;
-  const index = blockedIPs.indexOf(ip);
-  if (index === -1) {
-    return res.status(404).json({ message: 'IP not found in blocked list' });
+  const { ip } = req.body;
+  if (blockedIPs.includes(ip)) {
+    blockedIPs = blockedIPs.filter((blockedIp) => blockedIp !== ip);
+    fs.writeFileSync(BLOCKED_IP_FILE, JSON.stringify(blockedIPs, null, 2));
+    return res.json({ message: `IP ${ip} has been unblocked.` });
   }
-  blockedIPs.splice(index, 1);
-  res.status(200).json({ message: `Unblocked IP: ${ip}` });
-  console.log(`Unblocked IP: ${ip}`);
+  return res.status(400).json({ message: 'IP not found in blocked list.' });
 });
 
-// Admin route to get the list of blocked IPs
-app.get('/api/blocked-ips', (req, res) => {
-  res.status(200).json({ blockedIPs });
-});
-
-// Serve index.html (e-commerce page) and admin.html (admin panel)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+// Example route to test
+app.get('/api', (req, res) => {
+  res.json({ message: 'API is running!' });
 });
 
 // Start the server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
