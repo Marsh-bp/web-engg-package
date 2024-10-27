@@ -1,6 +1,6 @@
 const TIME_WINDOW = 60000; // 1 minute
 const REQUEST_LIMIT = 6;
-const blockedIPs = [];
+let blockedIPs = JSON.parse(localStorage.getItem('blockedIPs')) || [];
 
 document.getElementById('bookNowButton').addEventListener('click', () => {
     const responseMessage = document.getElementById('responseMessage');
@@ -16,6 +16,7 @@ document.getElementById('bookNowButton').addEventListener('click', () => {
     } else {
         responseMessage.textContent = 'Too many requests. Your IP has been blocked.';
         blockedIPs.push(ip);
+        localStorage.setItem('blockedIPs', JSON.stringify(blockedIPs));
     }
 });
 
