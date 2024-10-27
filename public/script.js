@@ -8,28 +8,23 @@ document.getElementById('bookNowButton').addEventListener('click', () => {
         .then(data => {
             const ip = data.ip;
             const responseMessage = document.getElementById('responseMessage');
+       
+            fetch('/api/get-blocked-ips')
+                .then(response => response.json())
+                .then(data => {
+                    const blockedIPs = data.blockedIPs;
 
-            if (blockedIPs.includes(ip)) {
-                responseMessage.textContent = 'Your IP is blocked due to too many requests.';
-                return;
-            }
-
-            if (isRequestAllowed(ip)) {
-                responseMessage.textContent = 'Booking request sent successfully!';
-            } else {
-                responseMessage.textContent = 'Too many requests. Your IP has been blocked.';
-                blockedIPs.push(ip);
-
-                fetch(`/api/block-ip?ip=${ip}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data.message);
-                    })
-                    .catch(error => console.error('Error blocking IP:', error));
-            }
+                    if (blockedIPs.includes(ip)) {
+                        responseMessage.textContent = 'Your IP is blocked due to too many requests.';
+                    } else {
+                        responseMessage.textContent = 'Booking request sent successfully!';
+                    }
+                })
+                .catch(error => console.error('Error fetching blocked IPs:', error));
         })
         .catch(error => console.error('Error fetching IP:', error));
 });
+
 
 function isRequestAllowed(ip) {
     const requests = JSON.parse(localStorage.getItem('requests')) || {};
