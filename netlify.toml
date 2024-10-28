@@ -5,7 +5,3 @@
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
-
-[context.production.environment]
-  GIST_ID = "09ad334f546c906896ec7b93621ae643"
-  GIST_TOKEN = "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"
