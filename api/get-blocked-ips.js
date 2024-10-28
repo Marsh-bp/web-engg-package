@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 
-const GIST_ID = '09ad334f546c906896ec7b93621ae643';
+const GIST_ID = process.env.GIST_ID;
 const GIST_TOKEN = process.env.GIST_TOKEN
 exports.handler = async (event) => {
     const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
